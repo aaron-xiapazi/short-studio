@@ -1,5 +1,14 @@
 .env
 config/factory.json
+config/topic_record.json
+config/topic_update.json
+config/topic_status_update.json
+config/script_record.json
+config/script_update.json
+config/script_status_update.json
+config/script_draft.md
+config/script_reviewed.md
+config/material_record.json
 知识库/原子库/
 知识库/自有库/
 .DS_Store
