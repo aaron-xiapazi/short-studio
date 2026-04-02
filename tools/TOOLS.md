@@ -1,12 +1,12 @@
 # 共享工具层
 
-> Skills 调用的底层能力。统一接口，统一计费，统一管理。
+> 编导的眼睛和耳朵。6 个工具，覆盖采集、搜索、趋势、评论。
 
 ## 设计理念
 
-工具层解决一个问题：**多个 Skill 都需要的能力，不应该重复实现。**
+工具层解决一个问题：**编导需要的能力，不应该重复实现。**
 
-比如"把一个抖音视频链接转成文案"，选题、采集、文案参考都会用到。抽成共享工具，统一维护。
+比如"抓评论区"——选题要看、效果追踪要看、粉丝反馈也要看。抽成共享工具，统一维护。
 
 ## 架构
 
@@ -17,14 +17,14 @@
 └──────────────┬──────────────────────┘
                │ 调用
 ┌──────────────▼──────────────────────┐
-│  Tools 层（本文件定义）                │
+│  Tools 层（6 个工具）                 │
 │  douyin-profile / video2script /    │
-│  douyin-search / trending           │
+│  douyin-search / trending /         │
+│  comments / web-search              │
 └──────────────┬──────────────────────┘
                │ HTTP
 ┌──────────────▼──────────────────────┐
 │  Studio API（远端服务）               │
-│  api.short.studio / skill-api       │
 │  统一鉴权 / 计费 / 限流               │
 └─────────────────────────────────────┘
 ```
@@ -42,6 +42,8 @@ python3 skill-api/call.py douyin-profile --url "https://www.douyin.com/user/xxx"
 python3 skill-api/call.py video2script --url "https://www.douyin.com/video/xxx"
 python3 skill-api/call.py douyin-search --keyword "AI创业" --count 20
 python3 skill-api/call.py trending --platform douyin
+python3 skill-api/call.py comments --url "https://www.douyin.com/video/xxx" --count 50
+python3 skill-api/call.py web-search --query "2026年AI行业融资数据" --count 10
 ```
 
 返回统一 JSON 格式：
@@ -64,10 +66,10 @@ python3 skill-api/call.py trending --platform douyin
 
 ## 鉴权
 
-- 用户首次使用工具时，本地自动生成 UUID 写入 `config/factory.json` 的 `user_id` 字段
-- 调用时通过 `X-Studio-Key: <user_id>` 头部鉴权
-- 新用户自带试用额度（如 100 次调用）
-- 额度用完后返回付款链接，用户通过微信支付绑定账号
+- 首次使用自动生成 UUID → 写入 `config/factory.json` 的 `user_id`
+- 调用时 `X-Studio-Key: <user_id>` 鉴权
+- 新用户自带试用额度
+- 额度用完返回付款链接
 
 ## 工具清单
 
@@ -75,7 +77,7 @@ python3 skill-api/call.py trending --platform douyin
 
 抓取指定抖音用户的公开主页信息和近期视频列表。
 
-**用途：** `/studio-scrape` 采集对标账号、`/studio-init` 录入对标账号时预览
+**编导用在哪：** 采集对标账号、初始化时预览对标
 
 **输入：**
 ```json
@@ -86,9 +88,7 @@ python3 skill-api/call.py trending --platform douyin
 ```json
 {
   "nickname": "张三",
-  "signature": "...",
   "follower_count": 120000,
-  "video_count": 85,
   "recent_videos": [
     {
       "title": "...",
@@ -102,7 +102,7 @@ python3 skill-api/call.py trending --platform douyin
 }
 ```
 
-**消耗：** 1 credit/次
+**消耗：** 1 credit
 
 ---
 
@@ -110,7 +110,7 @@ python3 skill-api/call.py trending --platform douyin
 
 给定视频链接，提取音频并转写为文字稿。
 
-**用途：** `/studio-scrape` 将对标视频转为文案存入原子库、`/studio-script` 参考优秀文案
+**编导用在哪：** 素材转写存入素材库、写稿时参考优秀文案
 
 **输入：**
 ```json
@@ -122,15 +122,11 @@ python3 skill-api/call.py trending --platform douyin
 {
   "title": "视频标题",
   "duration": 245,
-  "transcript": "完整文字稿...",
-  "sections": [
-    { "start": 0, "end": 15, "text": "Hook 部分..." },
-    { "start": 15, "end": 60, "text": "背景铺垫..." }
-  ]
+  "transcript": "完整文字稿..."
 }
 ```
 
-**消耗：** 2 credits/次（含 ASR 成本）
+**消耗：** 2 credits（含 ASR 成本）
 
 ---
 
@@ -138,7 +134,7 @@ python3 skill-api/call.py trending --platform douyin
 
 按关键词搜索抖音视频，返回排序结果。
 
-**用途：** `/studio-topic` 验证选题热度、`/studio-scrape` 发现同领域内容
+**编导用在哪：** 验证选题热度、发现同领域内容
 
 **输入：**
 ```json
@@ -149,21 +145,19 @@ python3 skill-api/call.py trending --platform douyin
 ```json
 {
   "keyword": "AI创业",
-  "total_results": 1200,
   "videos": [
     {
       "title": "...",
       "url": "...",
       "author": "...",
       "play_count": 100000,
-      "like_count": 8000,
-      "publish_time": "2026-03-30"
+      "like_count": 8000
     }
   ]
 }
 ```
 
-**消耗：** 1 credit/次
+**消耗：** 1 credit
 
 ---
 
@@ -171,7 +165,7 @@ python3 skill-api/call.py trending --platform douyin
 
 获取各平台当前热搜/趋势话题。
 
-**用途：** `/studio-topic` 热点捕捉
+**编导用在哪：** 每天早上巡逻抓热点、推荐选题
 
 **输入：**
 ```json
@@ -182,25 +176,88 @@ python3 skill-api/call.py trending --platform douyin
 ```json
 {
   "platform": "douyin",
-  "updated_at": "2026-04-02T10:00:00Z",
+  "updated_at": "2026-04-03T10:00:00Z",
   "topics": [
     { "rank": 1, "title": "...", "heat": 9800000, "url": "..." }
   ]
 }
 ```
 
-**消耗：** 1 credit/次
+**消耗：** 1 credit
+
+---
+
+### 5. comments — 抓评论区
+
+抓取指定视频的评论数据。
+
+**编导用在哪：** 粉丝反馈分析、选题灵感、发布效果判断
+
+**输入：**
+```json
+{ "url": "https://www.douyin.com/video/xxx", "count": 50, "sort": "hot" }
+```
+
+**输出：**
+```json
+{
+  "video_title": "...",
+  "total_comments": 1200,
+  "comments": [
+    {
+      "user": "用户A",
+      "text": "这个观点太对了...",
+      "likes": 320,
+      "replies": 15,
+      "time": "2026-04-02"
+    }
+  ]
+}
+```
+
+**消耗：** 1 credit
+
+---
+
+### 6. web-search — 通用搜索
+
+通用网络搜索（博查等），用于背景调研和事实核查。
+
+**编导用在哪：** 写稿时查数据/案例/背景、选题时验证信息、审稿时事实核查
+
+**输入：**
+```json
+{ "query": "2026年AI行业融资数据", "count": 10 }
+```
+
+**输出：**
+```json
+{
+  "query": "2026年AI行业融资数据",
+  "results": [
+    {
+      "title": "...",
+      "url": "...",
+      "snippet": "...",
+      "source": "36kr"
+    }
+  ]
+}
+```
+
+**消耗：** 1 credit
 
 ## 离线降级
 
-当 API 不可用时，Skill 应该能降级运行：
+当 API 不可用时，编导降级运行：
 
-- **选题**：无法自动抓热点 → 提示用户手动输入选题方向
-- **采集**：无法抓视频 → 提示用户贴入文案文本
-- **文案**：不依赖工具，正常运行
-- **审稿**：不依赖工具，正常运行
+- **选题**：无法自动抓热点 → 提示创作者手动输入方向
+- **采集**：无法抓视频 → 提示创作者贴入文案文本
+- **评论**：无法抓评论 → 提示创作者截图或描述反馈
+- **搜索**：无法搜索 → 提示创作者提供背景信息
+- **文案/审稿**：不依赖工具，正常运行
 
-工具层是增强，不是前置依赖。没有工具，工厂照样能跑。
+工具是编导的增强，不是前置依赖。没有工具，编导照样能陪你创作。
 
 ## 后续扩展
 
