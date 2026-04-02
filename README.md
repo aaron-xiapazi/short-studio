@@ -91,6 +91,23 @@ cd ~/.claude/skills/short-studio && bash setup
 - **原子库**通过 `/studio-scrape` 从对标账号采集，持续增长
 - **自有库**记录你自己发布内容的效果数据，形成反馈闭环
 
+## 共享工具层
+
+Skills 背后有一层共享工具，封装了抖音采集、视频转文案等能力：
+
+| 工具 | 能力 | 消耗 |
+|------|------|------|
+| `douyin-profile` | 抖音主页采集 | 1 credit |
+| `video2script` | 视频转文案（ASR） | 2 credits |
+| `douyin-search` | 关键词搜索 | 1 credit |
+| `trending` | 热点趋势 | 1 credit |
+
+- **零配置**：你不需要自己申请任何 API Key，我们统一提供
+- **免费试用**：新用户自带试用额度
+- **离线可用**：工具不可用时，工厂降级为手动模式，照样能跑
+
+→ 详见 [tools/TOOLS.md](tools/TOOLS.md)
+
 ## 飞书深度集成
 
 | 飞书能力 | 用途 |
