@@ -1,6 +1,7 @@
 {
   "version": "0.1.0",
   "initialized_at": "",
+  "user_id": "",
   "creator": {
     "name": "你的账号名",
     "positioning": "账号定位（如：AI实战派）",
