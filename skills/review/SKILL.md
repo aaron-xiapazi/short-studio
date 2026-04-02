@@ -1,7 +1,7 @@
 ---
 name: studio-review
-version: 0.1.0
-description: "Short Studio 审稿模块。对口播稿进行自检、去AI味、方法论校验。当用户需要审稿、改稿、去AI味时使用。"
+version: 0.2.0
+description: "Short Studio 审稿模块。编导对口播稿进行去AI味、方法论校验、定位一致性检查。"
 metadata:
   requires:
     bins: ["lark-cli"]
@@ -17,7 +17,13 @@ metadata:
 
 ### Step 1：读取文稿
 
+从飞书脚本库找到待审的记录，通过文档链接读取正文：
+
 ```bash
+# 从脚本库读取待审记录
+lark-cli base +record-list --as user --base-token <base_token> --table-id <script_table_id>
+
+# 读取文档正文
 lark-cli docs +fetch --as user --doc "<doc_url>"
 ```
 
@@ -51,43 +57,45 @@ lark-cli docs +fetch --as user --doc "<doc_url>"
 
 ### Step 4：定位一致性检查
 
-读取 `config/factory.json` 中的定位：
-- 这篇稿子的观点跟账号定位一致吗？
-- 用词风格符合设定的 tone 吗？
+读取定位文档：
+- 观点跟账号定位一致吗？
+- 用词风格符合 tone 吗？
 - 目标受众能听懂吗？
 
 ### Step 5：输出审稿报告 + 修改稿
 
+在对话中输出，像编导给意见一样直接说：
+
 ```
-## 审稿报告
+## 审稿意见
 
-### 去AI味
-- [x] 已去除 N 处 AI 套话
-- [修改细节]
-
-### 结构检查
-- [x] Hook ✅ / ❌ [建议]
-- [x] 节奏 ✅ / ❌ [建议]
-- ...
-
-### 定位一致性
-✅ / ❌ [说明]
+**去AI味：** 改了 X 处，主要是 [具体说明]
+**结构：** Hook ✅ / 节奏 ✅ / 论据需要补 [哪里]
+**定位一致性：** ✅
 
 ### 修改后全文
 [完整修改稿]
 ```
 
-### Step 6：更新文档
+### Step 6：更新飞书
 
-用户确认后更新飞书文档：
+创作者确认后：
 
 ```bash
+# 更新文档正文
 lark-cli docs +update --as user --doc "<doc_url>" --mode overwrite --markdown "<revised_content>"
 
-lark-cli base +record-update --as user \
-  --app-token <topic_base_token> --table-id <topic_table_id> \
+# 更新脚本库审核意见和状态
+lark-cli base +record-upsert --as user \
+  --base-token <base_token> --table-id <script_table_id> \
   --record-id <record_id> \
-  --data '{"fields":{"状态":"已审"}}'
+  --json '{"fields": {"状态": "终稿", "审核意见": "审核通过，改了X处AI味"}}'
+
+# 更新选题状态
+lark-cli base +record-upsert --as user \
+  --base-token <base_token> --table-id <topic_table_id> \
+  --record-id <record_id> \
+  --json '{"fields": {"状态": "待审"}}'
 ```
 
 ## 权限
