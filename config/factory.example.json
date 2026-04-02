@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.2.0",
   "initialized_at": "",
   "user_id": "",
   "creator": {
@@ -24,7 +24,13 @@
   ],
   "feishu": {
     "positioning_doc": "",
-    "topic_base_token": "",
-    "topic_table_id": ""
+    "base_token": "",
+    "tables": {
+      "topic": "",
+      "script": "",
+      "material": ""
+    },
+    "bot_id": "",
+    "chat_id": ""
   }
 }
