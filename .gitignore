@@ -1,0 +1,7 @@
+.env
+config/factory.json
+知识库/原子库/
+知识库/自有库/
+.DS_Store
+*.pyc
+__pycache__/
