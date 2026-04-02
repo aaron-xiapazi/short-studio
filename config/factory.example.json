@@ -1,0 +1,29 @@
+{
+  "version": "0.1.0",
+  "initialized_at": "",
+  "creator": {
+    "name": "你的账号名",
+    "positioning": "账号定位（如：AI实战派）",
+    "personal": "个人定位（如：每天真的在用AI干活的创业者）",
+    "audience": "目标受众（如：想用AI提效的职场人）",
+    "tone": "内容风格关键词（如：观点鲜明、实战派、不说废话）",
+    "platforms": {
+      "douyin": "",
+      "xiaohongshu": "",
+      "bilibili": "",
+      "shipinhao": ""
+    }
+  },
+  "benchmarks": [
+    {
+      "name": "对标账号名",
+      "platform": "抖音",
+      "url": ""
+    }
+  ],
+  "feishu": {
+    "positioning_doc": "",
+    "topic_base_token": "",
+    "topic_table_id": ""
+  }
+}
